@@ -1,64 +1,41 @@
-import java.io.*;
-import java.math.*;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Scanner;
 
-public class RSA {
-    BigInteger p, q, n, phi, e, d;
-    int bitLen = 1024;
-    Random r = new Random();
-
-    RSA() {
-        p = BigInteger.probablePrime(bitLen, r);
-        q = BigInteger.probablePrime(bitLen, r);
-
-        n = p.multiply(q);
-        phi = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
-
-        e = BigInteger.probablePrime(bitLen / 2, r);
-        while (!phi.gcd(e).equals(BigInteger.ONE))
-            e = e.add(BigInteger.ONE);
-
-        d = e.modInverse(phi);
-
-        System.out.println("Public key is " + e);
-        System.out.println("Private key is " + d);
+public class RSA{
+    public static int gcd(int a, int b){
+        return (b==0) ? a : gcd(b, a%b);
     }
-
-    byte[] encrypt(byte[] msg) {
-        return new BigInteger(msg).modPow(e, n).toByteArray();
+    public static int power(int a, int b , int n){
+        int r = 1;
+        for(int i = 0; i< b; i++){
+            r = (r * a) % n;
+        }
+        return r;
     }
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("P: "); int p = sc.nextInt();
+        System.out.println("Q: "); int q = sc.nextInt();
 
-    byte[] decrypt(byte[] msg) {
-        return new BigInteger(msg).modPow(d, n).toByteArray();
-    }
+        int n = p * q;
+        int phi = (p-1) * (q-1);
 
-    static String bytesToString(byte[] b) {
-        String s = "";
-        for (byte x : b) s += x;
-        return s;
-    }
+        // select e
+        int e = 2;
+        while(gcd(e,phi) != 1){
+            e++;
+        }
+        // get d
+        int d = 1;
+        while((d*e) % phi != 1){
+            d++;
+        }
 
-    public static void main(String[] args) throws Exception {
-        RSA rsa = new RSA();
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.println("Enter message:"); int m = sc.nextInt();
 
-        System.out.println("Enter the plain text: ");
-        String msg = br.readLine();
+        int c = power(m,e,n);
+        int dec = power(c,d,n);
 
-        System.out.println("Encrypting string: " + msg);
-        System.out.println("Plain text bytes: " +
-                bytesToString(msg.getBytes()));
-
-        byte[] enc = rsa.encrypt(msg.getBytes());
-        System.out.println("Encrypted Bytes: " +
-                bytesToString(enc));
-
-        byte[] dec = rsa.decrypt(enc);
-        System.out.println("Decrypting Bytes: " +
-                bytesToString(dec));
-
-        System.out.println("Decrypted string: " +
-                new String(dec, StandardCharsets.UTF_8));
+        System.out.println("Cipher text: " + c);
+        System.out.println("Message after decryption: " + dec);
     }
 }
